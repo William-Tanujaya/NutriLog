@@ -66,14 +66,12 @@ export default function LandingPage() {
                 <h2 className="text-xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
                   🌱 Vegan
                 </h2>
-                <p className="text-[#9dc99b] text-sm mt-0.5">
-                  No meat or animal products
-                </p>
+                <p className="text-[#9dc99b] text-sm mt-0.5">No meat or animal products</p>
               </div>
               <div className="text-[#4CAF50] text-xl">›</div>
             </div>
             <div className="mt-4 flex gap-2 flex-wrap">
-              {['Sayuran', 'Kacang-kacangan', 'Biji-bijian', 'Buah'].map(tag => (
+              {['Vegetables', 'Legumes', 'Grains', 'Fruits'].map(tag => (
                 <span key={tag} className="text-xs bg-[#4CAF50]/15 text-[#7bc97e] px-2.5 py-1 rounded-full border border-[#4CAF50]/20">
                   {tag}
                 </span>
@@ -98,14 +96,12 @@ export default function LandingPage() {
                 <h2 className="text-xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
                   🍖 Non-Vegan
                 </h2>
-                <p className="text-[#d4a57a] text-sm mt-0.5">
-                  Includes meat, fish & eggs
-                </p>
+                <p className="text-[#d4a57a] text-sm mt-0.5">Includes meat, fish & eggs</p>
               </div>
               <div className="text-[#FF8C42] text-xl">›</div>
             </div>
             <div className="mt-4 flex gap-2 flex-wrap">
-              {['Ayam', 'Sapi', 'Ikan', 'Telur'].map(tag => (
+              {['Chicken', 'Beef', 'Fish', 'Eggs'].map(tag => (
                 <span key={tag} className="text-xs bg-[#FF8C42]/15 text-[#d4956a] px-2.5 py-1 rounded-full border border-[#FF8C42]/20">
                   {tag}
                 </span>

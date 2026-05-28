@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { Category, Recipe, Addon } from '../data/recipes';
+import { useAuth } from './AuthContext';
 
 export interface CartItem {
   recipe: Recipe;
@@ -22,16 +23,20 @@ type DailyLogStore = Record<string, DailyLogEntry[]>;
 
 const todayKey = () => new Date().toISOString().split('T')[0];
 
-const loadDailyLog = (): DailyLogStore => {
+// Keys scoped per user
+const dailyLogKey = (username: string) => `nutrilog_daily_log_${username}`;
+const wishlistKey = (username: string) => `nutrilog_wishlist_${username}`;
+
+const loadDailyLog = (username: string): DailyLogStore => {
   try {
-    const raw = localStorage.getItem('nutrilog_daily_log');
+    const raw = localStorage.getItem(dailyLogKey(username));
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 };
 
-const loadWishlist = (): string[] => {
+const loadWishlist = (username: string): string[] => {
   try {
-    const raw = localStorage.getItem('nutrilog_wishlist');
+    const raw = localStorage.getItem(wishlistKey(username));
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 };
@@ -56,20 +61,29 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const username = user?.username ?? 'guest';
+
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [allDailyLogs, setAllDailyLogs] = useState<DailyLogStore>(loadDailyLog);
-  const [wishlist, setWishlist] = useState<string[]>(loadWishlist);
+  const [allDailyLogs, setAllDailyLogs] = useState<DailyLogStore>(() => loadDailyLog(username));
+  const [wishlist, setWishlist] = useState<string[]>(() => loadWishlist(username));
 
-  // Persist daily log to localStorage
+  // Reload data when user switches
   useEffect(() => {
-    localStorage.setItem('nutrilog_daily_log', JSON.stringify(allDailyLogs));
-  }, [allDailyLogs]);
+    setAllDailyLogs(loadDailyLog(username));
+    setWishlist(loadWishlist(username));
+    setCart([]);
+    setSelectedCategory(null);
+  }, [username]);
 
-  // Persist wishlist to localStorage
   useEffect(() => {
-    localStorage.setItem('nutrilog_wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+    localStorage.setItem(dailyLogKey(username), JSON.stringify(allDailyLogs));
+  }, [allDailyLogs, username]);
+
+  useEffect(() => {
+    localStorage.setItem(wishlistKey(username), JSON.stringify(wishlist));
+  }, [wishlist, username]);
 
   const dailyLog = allDailyLogs[todayKey()] ?? [];
 
@@ -85,44 +99,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const removeFromCart = (index: number) => {
-    setCart(prev => prev.filter((_, i) => i !== index));
-  };
-
+  const removeFromCart = (index: number) => setCart(prev => prev.filter((_, i) => i !== index));
   const clearCart = () => setCart([]);
 
   const logFromCart = () => {
     const entries: DailyLogEntry[] = cart.map(item => {
-      const addonCalories = item.selectedAddons.reduce((s, a) => s + a.calories, 0);
-      const addonProtein = item.selectedAddons.reduce((s, a) => s + a.protein, 0);
-      const addonCarbs = item.selectedAddons.reduce((s, a) => s + a.carbs, 0);
-      const addonFat = item.selectedAddons.reduce((s, a) => s + a.fat, 0);
+      const ac = item.selectedAddons.reduce((s, a) => s + a.calories, 0);
+      const ap = item.selectedAddons.reduce((s, a) => s + a.protein, 0);
+      const ab = item.selectedAddons.reduce((s, a) => s + a.carbs, 0);
+      const af = item.selectedAddons.reduce((s, a) => s + a.fat, 0);
       return {
         recipe: item.recipe,
         selectedAddons: item.selectedAddons,
         quantity: item.quantity,
         loggedAt: new Date().toISOString(),
-        totalCalories: (item.recipe.calories + addonCalories) * item.quantity,
-        totalProtein: (item.recipe.protein + addonProtein) * item.quantity,
-        totalCarbs: (item.recipe.carbs + addonCarbs) * item.quantity,
-        totalFat: (item.recipe.fat + addonFat) * item.quantity,
+        totalCalories: (item.recipe.calories + ac) * item.quantity,
+        totalProtein: (item.recipe.protein + ap) * item.quantity,
+        totalCarbs: (item.recipe.carbs + ab) * item.quantity,
+        totalFat: (item.recipe.fat + af) * item.quantity,
       };
     });
     const key = todayKey();
-    setAllDailyLogs(prev => ({
-      ...prev,
-      [key]: [...(prev[key] ?? []), ...entries],
-    }));
+    setAllDailyLogs(prev => ({ ...prev, [key]: [...(prev[key] ?? []), ...entries] }));
     clearCart();
   };
 
   const clearTodayLog = () => {
     const key = todayKey();
-    setAllDailyLogs(prev => {
-      const updated = { ...prev };
-      delete updated[key];
-      return updated;
-    });
+    setAllDailyLogs(prev => { const u = { ...prev }; delete u[key]; return u; });
   };
 
   const toggleWishlist = (recipeId: string) => {
@@ -138,8 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       selectedCategory, setSelectedCategory,
       cart, addToCart, updateCartItem, removeFromCart, clearCart,
       dailyLog, allDailyLogs, logFromCart, clearTodayLog,
-      totalCartItems,
-      wishlist, toggleWishlist,
+      totalCartItems, wishlist, toggleWishlist,
     }}>
       {children}
     </AppContext.Provider>
