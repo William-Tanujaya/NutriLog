@@ -1,3 +1,99 @@
-# Welcome to your Lovable project
+NutriLog
 
-TODO: Document your project here
+NutriLog is a Progressive Web App (PWA) for tracking daily meals, calories, macronutrients, recipes, wishlist items, cart flow, and personalized nutrition goals.
+
+This project was built with React, Vite, TypeScript, Tailwind CSS, and shadcn/ui. 
+
+NutriLog helps users manage their daily nutrition by tracking food intake, calculating calorie and macro goals, saving favorite recipes, and reviewing daily nutrition summaries.
+
+## Features
+
+- User login and signup flow
+- User onboarding and profile setup
+- Personalized calorie and macronutrient goals
+- Recipe list and recipe detail page
+- Food cart flow
+- Wishlist feature
+- Daily meal log
+- Nutrition summary dashboard
+- Mobile-friendly PWA layout
+- Installable PWA assets
+- Local security improvements
+
+## Tech Stack
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- React Router
+- Vite PWA
+- Vitest
+
+## Version History
+
+### v1.0.0
+Initial NutriLog project setup using React, Vite, TypeScript, Tailwind CSS, and shadcn/ui components.
+
+### v1.0.1
+Improved early UI structure, shared components, layout consistency, and base styling.
+
+### v1.0.2
+Expanded nutrition pages, reusable UI behavior, and application layout structure.
+
+### v1.0.3
+Added richer food and recipe data integration with improved nutrition calculation flow.
+
+### v1.1.0
+Added user flow, protected routes, profile-aware tracking, daily summaries, and improved meal/cart interactions.
+
+### v1.2.0
+Added PWA assets, mobile-ready improvements, recipe pages, cart, wishlist, and summary improvements.
+
+### v1.2.1
+Refined onboarding, profile setup, personal nutrition goals, and daily target calculations.
+
+### v1.2.2
+Completed the main NutriLog PWA feature set, including authentication, onboarding, recipes, cart, wishlist, daily logs, summary dashboard, profile page, and production build configuration.
+
+### v1.2.3
+Security hardening release.
+
+Security improvements:
+- Added PBKDF2-SHA256 password hashing
+- Added login brute-force lockout
+- Added generic login error messages to reduce user enumeration
+- Added stronger password validation
+- Added session expiration
+- Added automatic migration from plaintext local passwords to hashed passwords
+- Added Content Security Policy and security headers
+- Fixed production dependency audit vulnerabilities
+
+## Getting Started
+
+Install dependencies:
+```bash
+npm install
+```
+
+Run development server:
+```bash
+npm run dev
+```
+
+Build for production:
+```bash
+npm run build
+```
+
+Run tests:
+```bash
+npm test
+```
+
+## Security Note
+
+NutriLog currently uses browser local storage for demo authentication and user data. Version `v1.2.3` improves local security with password hashing, brute-force lockout, session expiration, and security headers.
+
+For production use, authentication should be moved to a backend system with secure server-side password hashing, database storage, rate limiting, and HTTP-only secure cookies.
