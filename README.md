@@ -60,7 +60,7 @@ Completed the main NutriLog PWA feature set, including authentication, onboardin
 ### v1.2.3
 Security hardening release.
 
-Security improvements:
+## Security improvements
 - Added PBKDF2-SHA256 password hashing
 - Added login brute-force lockout
 - Added generic login error messages to reduce user enumeration
