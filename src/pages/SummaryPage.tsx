@@ -1,19 +1,20 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { calculateDailyGoals } from '../utils/calculations';
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
-import { ArrowLeft, Trash2, TrendingUp, Zap, Droplets, Wheat } from 'lucide-react';
+import { ArrowLeft, Trash2, TrendingUp, Zap, Droplets, Wheat, UserCircle } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 
-const DAILY_GOALS = { calories: 2000, protein: 60, carbs: 250, fat: 65 };
-
-const todayLabel = () => new Date().toLocaleDateString('en-US', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-});
+const DEFAULT_GOALS = { calories: 2000, protein: 60, carbs: 250, fat: 65 };
 
 export default function SummaryPage() {
   const { dailyLog, clearTodayLog } = useApp();
+  const { profile } = useAuth();
   const navigate = useNavigate();
+
+  const GOALS = profile ? calculateDailyGoals(profile) : DEFAULT_GOALS;
 
   const totals = dailyLog.reduce(
     (acc, e) => ({
@@ -25,14 +26,17 @@ export default function SummaryPage() {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  const caloriesPct = Math.min((totals.calories / DAILY_GOALS.calories) * 100, 100);
-  const ringData = [{ name: 'Kcal', value: caloriesPct, fill: '#4CAF50' }];
+  const caloriesPct = Math.min((totals.calories / GOALS.calories) * 100, 100);
+  const ringColor = caloriesPct > 100 ? '#ef4444' : caloriesPct > 80 ? '#FF8C42' : '#4CAF50';
+  const ringData = [{ name: 'Kcal', value: caloriesPct, fill: ringColor }];
 
   const macros = [
-    { label: 'Protein', val: totals.protein, goal: DAILY_GOALS.protein, unit: 'g', color: '#4CAF50', icon: <Zap className="w-4 h-4" /> },
-    { label: 'Carbs', val: totals.carbs, goal: DAILY_GOALS.carbs, unit: 'g', color: '#4fa3d1', icon: <Wheat className="w-4 h-4" /> },
-    { label: 'Fat', val: totals.fat, goal: DAILY_GOALS.fat, unit: 'g', color: '#d4a030', icon: <Droplets className="w-4 h-4" /> },
+    { label: 'Protein', val: totals.protein, goal: GOALS.protein, unit: 'g', color: '#4CAF50', icon: <Zap className="w-4 h-4" /> },
+    { label: 'Carbs',   val: totals.carbs,   goal: GOALS.carbs,   unit: 'g', color: '#4fa3d1', icon: <Wheat className="w-4 h-4" /> },
+    { label: 'Fat',     val: totals.fat,     goal: GOALS.fat,     unit: 'g', color: '#d4a030', icon: <Droplets className="w-4 h-4" /> },
   ];
+
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="min-h-screen bg-[#0f1a0f] pb-24">
@@ -43,14 +47,25 @@ export default function SummaryPage() {
           </button>
           <div className="flex-1">
             <h1 className="text-lg font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>📊 Daily Summary</h1>
-            <p className="text-xs text-[#6a8a68]">{todayLabel()}</p>
+            <p className="text-xs text-[#6a8a68]">{today}</p>
           </div>
+          <button onClick={() => navigate('/profile')} className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+            <UserCircle className="w-5 h-5 text-[#7a9a78]" />
+          </button>
           {dailyLog.length > 0 && (
             <button onClick={clearTodayLog} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center">
               <Trash2 className="w-4 h-4 text-red-400" />
             </button>
           )}
         </div>
+        {/* Personal goal badge */}
+        {profile && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#4CAF50]/10 border border-[#4CAF50]/20 text-[#7bc97e]">
+              {profile.goal === 'cutting' ? '🔥 Cutting' : profile.goal === 'bulking' ? '💪 Bulking' : '⚖️ Maintenance'} · {GOALS.calories} kcal goal
+            </span>
+          </div>
+        )}
       </div>
 
       {dailyLog.length === 0 ? (
@@ -65,10 +80,8 @@ export default function SummaryPage() {
       ) : (
         <div className="px-4 pt-4 space-y-4">
           {/* Calorie ring */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#141f13] rounded-2xl p-5 border border-white/5"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#141f13] rounded-2xl p-5 border border-white/5">
             <div className="flex items-center gap-4">
               <div className="relative w-28 h-28">
                 <ResponsiveContainer width="100%" height="100%">
@@ -78,23 +91,21 @@ export default function SummaryPage() {
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <p className="text-white font-bold text-lg leading-none">{Math.round(caloriesPct)}%</p>
-                  <p className="text-[#4a6b48] text-[10px]">achieved</p>
+                  <p className="text-[#4a6b48] text-[10px]">of goal</p>
                 </div>
               </div>
               <div className="flex-1">
                 <p className="text-[#7a9a78] text-xs uppercase tracking-wider">Calories Today</p>
                 <p className="text-white text-3xl font-bold mt-1">{totals.calories}</p>
-                <p className="text-[#4a6b48] text-sm">of {DAILY_GOALS.calories} kcal goal</p>
+                <p className="text-[#4a6b48] text-sm">of {GOALS.calories} kcal goal</p>
                 <div className="mt-2 h-2 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${caloriesPct}%` }}
-                    transition={{ duration: 1, ease: 'easeOut' }}
-                    className="h-full rounded-full bg-[#4CAF50]"
-                  />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${caloriesPct}%` }}
+                    transition={{ duration: 1 }} className="h-full rounded-full" style={{ background: ringColor }} />
                 </div>
                 <p className="text-[#6a8a68] text-xs mt-1">
-                  {Math.max(DAILY_GOALS.calories - totals.calories, 0)} kcal remaining
+                  {totals.calories > GOALS.calories
+                    ? `⚠️ ${totals.calories - GOALS.calories} kcal over goal`
+                    : `${GOALS.calories - totals.calories} kcal remaining`}
                 </p>
               </div>
             </div>
@@ -105,12 +116,8 @@ export default function SummaryPage() {
             {macros.map((m, i) => {
               const pct = Math.min((m.val / m.goal) * 100, 100);
               return (
-                <motion.div
-                  key={m.label}
-                  initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.08 }}
-                  className="bg-[#141f13] rounded-xl p-3 border border-white/5"
-                >
+                <motion.div key={m.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.08 }} className="bg-[#141f13] rounded-xl p-3 border border-white/5">
                   <div className="flex items-center gap-1.5 mb-2" style={{ color: m.color }}>
                     {m.icon}
                     <span className="text-[10px] font-medium uppercase tracking-wider">{m.label}</span>
@@ -118,19 +125,16 @@ export default function SummaryPage() {
                   <p className="text-white font-bold text-lg">{m.val}<span className="text-xs font-normal text-[#6a8a68]">{m.unit}</span></p>
                   <p className="text-[#4a6b48] text-[10px]">/ {m.goal}{m.unit}</p>
                   <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }} animate={{ width: `${pct}%` }}
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                       transition={{ duration: 0.8, delay: 0.3 + i * 0.08 }}
-                      className="h-full rounded-full"
-                      style={{ background: m.color }}
-                    />
+                      className="h-full rounded-full" style={{ background: m.color }} />
                   </div>
                 </motion.div>
               );
             })}
           </div>
 
-          {/* Meals logged */}
+          {/* Meals */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-[#4CAF50]" />
@@ -138,19 +142,11 @@ export default function SummaryPage() {
             </div>
             <div className="space-y-2">
               {dailyLog.map((entry, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-[#141f13] rounded-xl p-3 border border-white/5 flex gap-3"
-                >
+                <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }} className="bg-[#141f13] rounded-xl p-3 border border-white/5 flex gap-3">
                   <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                    <img
-                      src={entry.recipe.image}
-                      alt={entry.recipe.name}
-                      className="w-full h-full object-cover object-center"
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }}
-                    />
+                    <img src={entry.recipe.image} alt={entry.recipe.name} className="w-full h-full object-cover object-center"
+                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">

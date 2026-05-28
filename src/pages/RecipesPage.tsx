@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { GOAL_INFO } from '../utils/calculations';
 import { recipes } from '../data/recipes';
 import { Clock, ChefHat, Flame, ShoppingCart, ArrowLeft, Search, Heart, X } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
@@ -9,7 +11,16 @@ import BottomNav from '../components/BottomNav';
 export default function RecipesPage() {
   const { selectedCategory, setSelectedCategory, totalCartItems, wishlist, toggleWishlist } = useApp();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [query, setQuery] = useState('');
+
+  const goalInfo = profile ? GOAL_INFO[profile.goal] : null;
+  const recommended = profile
+    ? recipes
+        .filter(r => r.category === selectedCategory)
+        .filter(r => GOAL_INFO[profile.goal].filter(r.calories))
+        .slice(0, 3)
+    : [];
 
   const filtered = recipes
     .filter(r => r.category === selectedCategory)
@@ -89,6 +100,41 @@ export default function RecipesPage() {
           </button>
         </div>
       </div>
+
+
+        {/* Recommendations */}
+        {goalInfo && recommended.length > 0 && query === '' && (
+          <div className="px-4 pt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">🎯</span>
+              <h2 className="text-white font-semibold text-sm">Recommended for You</h2>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: `${goalInfo.color}20`, color: goalInfo.color }}>
+                {profile!.goal.charAt(0).toUpperCase() + profile!.goal.slice(1)}
+              </span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {recommended.map(recipe => (
+                <motion.div key={recipe.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                  onClick={() => navigate(`/recipe/${recipe.id}`)}
+                  className="flex-shrink-0 w-40 bg-[#141f13] rounded-2xl overflow-hidden border border-white/5 cursor-pointer active:scale-95 transition-transform">
+                  <div className="relative h-24 overflow-hidden">
+                    <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover object-center"
+                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#141f13]/80 to-transparent" />
+                    <button onClick={e => { e.stopPropagation(); toggleWishlist(recipe.id); }}
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center">
+                      <Heart className={`w-3 h-3 ${wishlist.includes(recipe.id) ? 'fill-red-400 text-red-400' : 'text-white'}`} />
+                    </button>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-white text-xs font-semibold leading-tight line-clamp-2">{recipe.name}</p>
+                    <p className="text-[#6a8a68] text-[10px] mt-1">{recipe.calories} kcal · {recipe.protein}g protein</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Recipe grid */}
       <div className="px-4 pt-4 space-y-4">
