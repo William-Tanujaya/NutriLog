@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { calculateDailyGoals, calculateTDEE, getBMIInfo, GOAL_INFO, ACTIVITY_INFO } from '../utils/calculations';
 import type { UserProfile, ActivityLevel, Goal } from '../utils/calculations';
-import { ArrowLeft, Pencil, Check, X } from 'lucide-react';
+import { ArrowLeft, Pencil, Check, X, LogOut } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 
 export default function ProfilePage() {
-  const { user, profile, saveProfile } = useAuth();
+  const { user, profile, saveProfile, logout } = useAuth();
+  const handleLogout = () => { logout(); navigate('/auth'); };
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<UserProfile | null>(profile);
@@ -75,6 +76,9 @@ export default function ProfilePage() {
               <Pencil className="w-4 h-4 text-[#7a9a78]" />
             </button>
           )}
+          <button onClick={handleLogout} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center ml-1">
+            <LogOut className="w-4 h-4 text-red-400" />
+          </button>
         </div>
       </div>
 

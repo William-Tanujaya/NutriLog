@@ -75,7 +75,7 @@ export default function RecipeDetailPage() {
   };
 
   const handleAddToCart = () => {
-    addToCart(recipe, selectedAddons);
+    addToCart(recipe, selectedAddons, ingredientScales);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -84,7 +84,7 @@ export default function RecipeDetailPage() {
   const scaleBg = (s: number) => s === 0 ? 'bg-red-500/20 text-red-400' : s === 0.5 ? 'bg-amber-500/20 text-amber-400' : 'bg-white/10 text-[#7a9a78]';
 
   return (
-    <div className="min-h-screen bg-[#0f1a0f] pb-28">
+    <div className="min-h-screen bg-[#0f1a0f] pb-36">
       {/* Hero */}
       <div className="relative h-72">
         <img

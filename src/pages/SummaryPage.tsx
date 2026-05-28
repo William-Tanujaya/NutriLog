@@ -1,18 +1,64 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { calculateDailyGoals } from '../utils/calculations';
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
-import { ArrowLeft, Trash2, TrendingUp, Zap, Droplets, Wheat, UserCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, TrendingUp, Zap, Droplets, Wheat, UserCircle, AlertTriangle } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 
 const DEFAULT_GOALS = { calories: 2000, protein: 60, carbs: 250, fat: 65 };
 
+function ConfirmDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        onClick={e => e.stopPropagation()}
+        className="bg-[#141f13] rounded-2xl p-6 w-full max-w-sm border border-white/10"
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+          </div>
+          <h3 className="text-white font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Clear Today's Log?
+          </h3>
+        </div>
+        <p className="text-[#7a9a78] text-sm leading-relaxed mb-5">
+          This will permanently delete all meals logged today. This action cannot be undone.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 rounded-xl font-semibold text-sm text-[#7a9a78] bg-white/5 border border-white/10"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-red-500"
+          >
+            Yes, Delete
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function SummaryPage() {
-  const { dailyLog, clearTodayLog } = useApp();
+  const { dailyLog, clearTodayLog, deleteLogEntry } = useApp();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const GOALS = profile ? calculateDailyGoals(profile) : DEFAULT_GOALS;
 
@@ -36,7 +82,9 @@ export default function SummaryPage() {
     { label: 'Fat',     val: totals.fat,     goal: GOALS.fat,     unit: 'g', color: '#d4a030', icon: <Droplets className="w-4 h-4" /> },
   ];
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 
   return (
     <div className="min-h-screen bg-[#0f1a0f] pb-24">
@@ -53,14 +101,16 @@ export default function SummaryPage() {
             <UserCircle className="w-5 h-5 text-[#7a9a78]" />
           </button>
           {dailyLog.length > 0 && (
-            <button onClick={clearTodayLog} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center">
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center"
+            >
               <Trash2 className="w-4 h-4 text-red-400" />
             </button>
           )}
         </div>
-        {/* Personal goal badge */}
         {profile && (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2">
             <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#4CAF50]/10 border border-[#4CAF50]/20 text-[#7bc97e]">
               {profile.goal === 'cutting' ? '🔥 Cutting' : profile.goal === 'bulking' ? '💪 Bulking' : '⚖️ Maintenance'} · {GOALS.calories} kcal goal
             </span>
@@ -134,45 +184,72 @@ export default function SummaryPage() {
             })}
           </div>
 
-          {/* Meals */}
+          {/* Meals logged */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-[#4CAF50]" />
               <h2 className="text-white font-semibold">Meals Logged Today</h2>
             </div>
             <div className="space-y-2">
-              {dailyLog.map((entry, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }} className="bg-[#141f13] rounded-xl p-3 border border-white/5 flex gap-3">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={entry.recipe.image} alt={entry.recipe.name} className="w-full h-full object-cover object-center"
-                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-white font-medium text-sm truncate">{entry.recipe.emoji} {entry.recipe.name}</h3>
-                      <span className="text-[#4CAF50] text-xs font-semibold flex-shrink-0">{entry.totalCalories} kcal</span>
+              <AnimatePresence>
+                {dailyLog.map((entry, i) => (
+                  <motion.div key={i}
+                    initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20, height: 0, marginBottom: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="bg-[#141f13] rounded-xl p-3 border border-white/5 flex gap-3"
+                  >
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                      <img src={entry.recipe.image} alt={entry.recipe.name}
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
                     </div>
-                    <p className="text-[#6a8a68] text-xs mt-0.5">
-                      Protein: {entry.totalProtein}g · Carbs: {entry.totalCarbs}g · Fat: {entry.totalFat}g
-                    </p>
-                    {entry.selectedAddons.length > 0 && (
-                      <p className="text-[#4a6b48] text-[10px] mt-1">+ {entry.selectedAddons.map(a => a.name).join(', ')}</p>
-                    )}
-                    <p className="text-[#3a5a38] text-[10px] mt-0.5">
-                      {new Date(entry.loggedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-white font-medium text-sm truncate">{entry.recipe.emoji} {entry.recipe.name}</h3>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-[#4CAF50] text-xs font-semibold">{entry.totalCalories} kcal</span>
+                          <button
+                            onClick={() => deleteLogEntry(i)}
+                            className="w-6 h-6 rounded-lg bg-red-500/10 flex items-center justify-center"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-400" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[#6a8a68] text-xs mt-0.5">
+                        Protein: {entry.totalProtein}g · Carbs: {entry.totalCarbs}g · Fat: {entry.totalFat}g
+                      </p>
+                      {entry.selectedAddons.length > 0 && (
+                        <p className="text-[#4a6b48] text-[10px] mt-1">+ {entry.selectedAddons.map(a => a.name).join(', ')}</p>
+                      )}
+                      <p className="text-[#3a5a38] text-[10px] mt-0.5">
+                        {new Date(entry.loggedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </div>
 
-          <button onClick={() => navigate('/recipes')} className="w-full py-3 rounded-2xl font-medium text-[#7bc97e] text-sm bg-[#4CAF50]/10 border border-[#4CAF50]/20">
+          <button onClick={() => navigate('/recipes')}
+            className="w-full py-3 rounded-2xl font-medium text-[#7bc97e] text-sm bg-[#4CAF50]/10 border border-[#4CAF50]/20">
             + Add More Food
           </button>
         </div>
       )}
+
+      {/* Confirm dialog */}
+      <AnimatePresence>
+        {showConfirm && (
+          <ConfirmDialog
+            onConfirm={() => { clearTodayLog(); setShowConfirm(false); }}
+            onCancel={() => setShowConfirm(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <BottomNav />
     </div>
   );

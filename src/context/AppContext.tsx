@@ -6,6 +6,7 @@ export interface CartItem {
   recipe: Recipe;
   selectedAddons: Addon[];
   quantity: number;
+  ingredientScales: Record<number, number>;
 }
 
 export interface DailyLogEntry {
@@ -20,39 +21,30 @@ export interface DailyLogEntry {
 }
 
 type DailyLogStore = Record<string, DailyLogEntry[]>;
-
 const todayKey = () => new Date().toISOString().split('T')[0];
+const dailyLogKey = (u: string) => `nutrilog_daily_log_${u}`;
+const wishlistKey = (u: string) => `nutrilog_wishlist_${u}`;
 
-// Keys scoped per user
-const dailyLogKey = (username: string) => `nutrilog_daily_log_${username}`;
-const wishlistKey = (username: string) => `nutrilog_wishlist_${username}`;
-
-const loadDailyLog = (username: string): DailyLogStore => {
-  try {
-    const raw = localStorage.getItem(dailyLogKey(username));
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
+const loadDailyLog = (u: string): DailyLogStore => {
+  try { return JSON.parse(localStorage.getItem(dailyLogKey(u)) || '{}'); } catch { return {}; }
 };
-
-const loadWishlist = (username: string): string[] => {
-  try {
-    const raw = localStorage.getItem(wishlistKey(username));
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+const loadWishlist = (u: string): string[] => {
+  try { return JSON.parse(localStorage.getItem(wishlistKey(u)) || '[]'); } catch { return []; }
 };
 
 interface AppContextType {
   selectedCategory: Category | null;
   setSelectedCategory: (cat: Category) => void;
   cart: CartItem[];
-  addToCart: (recipe: Recipe, addons: Addon[]) => void;
-  updateCartItem: (index: number, addons: Addon[]) => void;
+  addToCart: (recipe: Recipe, addons: Addon[], ingredientScales: Record<number, number>) => void;
+  updateCartItem: (index: number, addons: Addon[], ingredientScales: Record<number, number>) => void;
   removeFromCart: (index: number) => void;
   clearCart: () => void;
   dailyLog: DailyLogEntry[];
   allDailyLogs: DailyLogStore;
   logFromCart: () => void;
   clearTodayLog: () => void;
+  deleteLogEntry: (index: number) => void;
   totalCartItems: number;
   wishlist: string[];
   toggleWishlist: (recipeId: string) => void;
@@ -69,7 +61,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [allDailyLogs, setAllDailyLogs] = useState<DailyLogStore>(() => loadDailyLog(username));
   const [wishlist, setWishlist] = useState<string[]>(() => loadWishlist(username));
 
-  // Reload data when user switches
   useEffect(() => {
     setAllDailyLogs(loadDailyLog(username));
     setWishlist(loadWishlist(username));
@@ -87,14 +78,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const dailyLog = allDailyLogs[todayKey()] ?? [];
 
-  const addToCart = (recipe: Recipe, addons: Addon[]) => {
-    setCart(prev => [...prev, { recipe, selectedAddons: addons, quantity: 1 }]);
+  const addToCart = (recipe: Recipe, addons: Addon[], ingredientScales: Record<number, number>) => {
+    setCart(prev => [...prev, { recipe, selectedAddons: addons, quantity: 1, ingredientScales }]);
   };
 
-  const updateCartItem = (index: number, addons: Addon[]) => {
+  const updateCartItem = (index: number, addons: Addon[], ingredientScales: Record<number, number>) => {
     setCart(prev => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], selectedAddons: addons };
+      updated[index] = { ...updated[index], selectedAddons: addons, ingredientScales };
       return updated;
     });
   };
@@ -104,6 +95,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logFromCart = () => {
     const entries: DailyLogEntry[] = cart.map(item => {
+      const avgScale = item.recipe.ingredients.length > 0
+        ? Object.keys(item.ingredientScales).length > 0
+          ? item.recipe.ingredients.reduce((s, _, i) => s + (item.ingredientScales[i] ?? 1), 0) / item.recipe.ingredients.length
+          : 1
+        : 1;
       const ac = item.selectedAddons.reduce((s, a) => s + a.calories, 0);
       const ap = item.selectedAddons.reduce((s, a) => s + a.protein, 0);
       const ab = item.selectedAddons.reduce((s, a) => s + a.carbs, 0);
@@ -113,10 +109,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         selectedAddons: item.selectedAddons,
         quantity: item.quantity,
         loggedAt: new Date().toISOString(),
-        totalCalories: (item.recipe.calories + ac) * item.quantity,
-        totalProtein: (item.recipe.protein + ap) * item.quantity,
-        totalCarbs: (item.recipe.carbs + ab) * item.quantity,
-        totalFat: (item.recipe.fat + af) * item.quantity,
+        totalCalories: Math.round((item.recipe.calories * avgScale + ac) * item.quantity),
+        totalProtein: Math.round((item.recipe.protein * avgScale + ap) * item.quantity),
+        totalCarbs: Math.round((item.recipe.carbs * avgScale + ab) * item.quantity),
+        totalFat: Math.round((item.recipe.fat * avgScale + af) * item.quantity),
       };
     });
     const key = todayKey();
@@ -127,6 +123,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearTodayLog = () => {
     const key = todayKey();
     setAllDailyLogs(prev => { const u = { ...prev }; delete u[key]; return u; });
+  };
+
+  const deleteLogEntry = (index: number) => {
+    const key = todayKey();
+    setAllDailyLogs(prev => ({
+      ...prev,
+      [key]: (prev[key] ?? []).filter((_, i) => i !== index),
+    }));
   };
 
   const toggleWishlist = (recipeId: string) => {
@@ -141,7 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       selectedCategory, setSelectedCategory,
       cart, addToCart, updateCartItem, removeFromCart, clearCart,
-      dailyLog, allDailyLogs, logFromCart, clearTodayLog,
+      dailyLog, allDailyLogs, logFromCart, clearTodayLog, deleteLogEntry,
       totalCartItems, wishlist, toggleWishlist,
     }}>
       {children}

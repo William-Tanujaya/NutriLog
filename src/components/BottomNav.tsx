@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, UtensilsCrossed, ShoppingCart, Heart, BarChart2, LogOut } from 'lucide-react';
+import { Home, UtensilsCrossed, ShoppingCart, Heart, BarChart2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,26 +15,15 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalCartItems, wishlist } = useApp();
-  const { logout, user } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/auth');
-  };
+  const { user } = useAuth();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0d180d]/95 backdrop-blur-md border-t border-white/5">
       {/* Username bar */}
-      <div className="flex items-center justify-between px-4 pt-2 pb-0">
+      <div className="px-4 pt-1.5 pb-0">
         <p className="text-[#3a5a38] text-[10px]">
           Signed in as <span className="text-[#4CAF50] font-medium">@{user?.username}</span>
         </p>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-1 text-[#3a5a38] text-[10px] hover:text-red-400 transition-colors"
-        >
-          <LogOut className="w-3 h-3" /> Sign out
-        </button>
       </div>
 
       {/* Nav tabs */}
