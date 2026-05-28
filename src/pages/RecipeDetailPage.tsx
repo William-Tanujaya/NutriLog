@@ -86,12 +86,12 @@ export default function RecipeDetailPage() {
   return (
     <div className="min-h-screen bg-[#0f1a0f] pb-28">
       {/* Hero */}
-      <div className="relative h-64">
+      <div className="relative h-72">
         <img
           src={recipe.image}
           alt={recipe.name}
           className="w-full h-full object-cover object-center"
-          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=90'; }}
+          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#0f1a0f]" />
         <button onClick={() => navigate(-1)} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">

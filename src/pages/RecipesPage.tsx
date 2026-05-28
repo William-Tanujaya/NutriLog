@@ -118,7 +118,7 @@ export default function RecipesPage() {
                 className="w-full h-full object-cover object-center"
                 loading="lazy"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=90';
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100';
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#141f13] via-transparent to-transparent" />

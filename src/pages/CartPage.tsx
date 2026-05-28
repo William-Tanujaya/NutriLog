@@ -160,7 +160,7 @@ export default function CartPage() {
                           src={item.recipe.image}
                           alt={item.recipe.name}
                           className="w-full h-full object-cover object-center"
-                          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=90'; }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
