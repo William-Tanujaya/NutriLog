@@ -23,18 +23,20 @@ export default function AuthPage() {
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
+    if (loading) return;
     setFeedback(null);
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
     const result = mode === 'login'
       ? login(username, password)
       : register(username, email, password);
+    const settled = await result;
     setLoading(false);
-    if (result.success) {
-      setFeedback({ type: 'success', message: result.message });
+    if (settled.success) {
+      setFeedback({ type: 'success', message: settled.message });
       setTimeout(() => navigate('/'), 800);
     } else {
-      setFeedback({ type: 'error', message: result.message });
+      setFeedback({ type: 'error', message: settled.message });
     }
   };
 
@@ -132,6 +134,10 @@ export default function AuthPage() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                autoComplete="username"
+                maxLength={24}
+                pattern="[a-z0-9_]{3,24}"
+                spellCheck={false}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white placeholder-[#4a6b48] outline-none focus:border-[#4CAF50]/60 transition-colors"
               />
             </div>
@@ -151,6 +157,9 @@ export default function AuthPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                  autoComplete="email"
+                  maxLength={254}
+                  spellCheck={false}
                   className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white placeholder-[#4a6b48] outline-none focus:border-[#4CAF50]/60 transition-colors"
                 />
               </motion.div>
@@ -161,14 +170,19 @@ export default function AuthPage() {
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4a6b48]" />
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder={mode === 'signup' ? 'Password (min. 6 characters)' : 'Password'}
+                placeholder={mode === 'signup' ? 'Password (min. 10 chars)' : 'Password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                minLength={mode === 'signup' ? 10 : undefined}
+                maxLength={128}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3.5 text-sm text-white placeholder-[#4a6b48] outline-none focus:border-[#4CAF50]/60 transition-colors"
               />
               <button
+                type="button"
                 onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#4a6b48]"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

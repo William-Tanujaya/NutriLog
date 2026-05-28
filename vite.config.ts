@@ -8,6 +8,12 @@ export default defineConfig({
     host: "::",
     port: 8080,
     hmr: { overlay: false },
+    headers: {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    },
   },
   plugins: [
     react(),
