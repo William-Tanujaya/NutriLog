@@ -218,7 +218,7 @@ export default function CartPage() {
                       <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                         <img src={item.recipe.image} alt={item.recipe.name}
                           className="w-full h-full object-cover object-center"
-                          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
+                          onError={(e) => { (e.target as HTMLImageElement).src = `${import.meta.env.BASE_URL}placeholder.svg`; }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-1">

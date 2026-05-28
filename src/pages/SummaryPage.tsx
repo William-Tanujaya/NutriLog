@@ -209,7 +209,7 @@ export default function SummaryPage() {
                     <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                       <img src={entry.recipe.image} alt={entry.recipe.name}
                         className="w-full h-full object-cover object-center"
-                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
+                        onError={(e) => { (e.target as HTMLImageElement).src = `${import.meta.env.BASE_URL}placeholder.svg`; }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">

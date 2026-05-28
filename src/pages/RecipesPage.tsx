@@ -160,7 +160,7 @@ export default function RecipesPage() {
               >
                 <div className="relative h-24 overflow-hidden">
                   <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover object-center"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }} />
+                    onError={(e) => { (e.target as HTMLImageElement).src = `${import.meta.env.BASE_URL}placeholder.svg`; }} />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#141f13]/80 to-transparent" />
                   <button onClick={e => { e.stopPropagation(); toggleWishlist(recipe.id); }}
                     className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center">
@@ -207,7 +207,7 @@ export default function RecipesPage() {
                 alt={recipe.name}
                 className="w-full h-full object-cover object-center"
                 loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }}
+                onError={(e) => { (e.target as HTMLImageElement).src = `${import.meta.env.BASE_URL}placeholder.svg`; }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#141f13] via-transparent to-transparent" />
               <span className={`absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm ${difficultyColor[recipe.difficulty]}`}>

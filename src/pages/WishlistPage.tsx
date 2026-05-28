@@ -60,7 +60,7 @@ export default function WishlistPage() {
                     src={recipe.image}
                     alt={recipe.name}
                     className="w-full h-full object-cover object-center"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=100'; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = `${import.meta.env.BASE_URL}placeholder.svg`; }}
                   />
                 </div>
 
