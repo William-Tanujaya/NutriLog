@@ -1,4 +1,4 @@
-##NutriLog
+## NutriLog
 
 NutriLog is a Progressive Web App (PWA) for tracking daily meals, calories, macronutrients, recipes, wishlist items, cart flow, and personalized nutrition goals.
 
