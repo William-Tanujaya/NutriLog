@@ -178,11 +178,11 @@ export default function OnboardingPage() {
           {/* STEP 3: Activity + Goal + preview */}
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-5">
-              <h2 className="text-white font-semibold text-lg">Your Goals</h2>
 
               {/* Activity level */}
               <div>
-                <p className="text-[#7a9a78] text-sm mb-2">Activity Level</p>
+                <p className="text-white font-semibold text-base mb-0.5">How active are you?</p>
+                <p className="text-[#6a8a68] text-xs mb-3">This helps us calculate your daily calorie needs accurately.</p>
                 <div className="space-y-2">
                   {(Object.entries(ACTIVITY_INFO) as [ActivityLevel, { label: string; desc: string }][]).map(([key, info]) => (
                     <button key={key} onClick={() => setActivity(key)}
@@ -201,7 +201,8 @@ export default function OnboardingPage() {
 
               {/* Goal */}
               <div>
-                <p className="text-[#7a9a78] text-sm mb-2">Fitness Goal</p>
+                <p className="text-white font-semibold text-base mb-0.5">Your Goals</p>
+                <p className="text-[#6a8a68] text-xs mb-3">Choose what you want to achieve with NutriLog.</p>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.entries(GOAL_INFO) as [Goal, typeof GOAL_INFO[Goal]][]).map(([key, info]) => (
                     <button key={key} onClick={() => setGoal(key)}

@@ -152,11 +152,18 @@ export default function SummaryPage() {
                   <motion.div initial={{ width: 0 }} animate={{ width: `${caloriesPct}%` }}
                     transition={{ duration: 1 }} className="h-full rounded-full" style={{ background: ringColor }} />
                 </div>
-                <p className="text-[#6a8a68] text-xs mt-1">
-                  {totals.calories > GOALS.calories
-                    ? `⚠️ ${totals.calories - GOALS.calories} kcal over goal`
-                    : `${GOALS.calories - totals.calories} kcal remaining`}
-                </p>
+                {totals.calories > GOALS.calories ? (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/15 border border-red-500/30">
+                    <span className="text-red-400 text-xs font-bold">⚠️ {totals.calories - GOALS.calories} kcal over goal</span>
+                  </div>
+                ) : (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{ background: `${ringColor}18`, borderColor: `${ringColor}40` }}>
+                    <span className="text-sm font-bold" style={{ color: ringColor }}>
+                      {GOALS.calories - totals.calories}
+                    </span>
+                    <span className="text-xs font-medium" style={{ color: ringColor }}>kcal remaining</span>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
