@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { recipes } from '../data/recipes';
+import { useRecipes } from '../context/RecipeContext';
 import { Heart, Clock, Flame, ArrowLeft } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 
 export default function WishlistPage() {
   const { wishlist, toggleWishlist } = useApp();
+  const { recipes } = useRecipes();
   const navigate = useNavigate();
 
   const saved = recipes.filter(r => wishlist.includes(r.id));

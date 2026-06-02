@@ -24,6 +24,7 @@ interface AuthResult {
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
+  isAdmin: boolean;
   login: (username: string, password: string) => Promise<AuthResult>;
   register: (username: string, email: string, password: string) => Promise<AuthResult>;
   saveProfile: (p: UserProfile) => void;
@@ -34,7 +35,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const USERS_KEY = 'nutrilog_users';
+export const USERS_KEY = 'nutrilog_users';
 const SESSION_KEY = 'nutrilog_session';
 const LOGIN_GUARD_KEY = 'nutrilog_login_guard';
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -43,11 +44,17 @@ const LOGIN_LOCK_MS = 15 * 60 * 1000;
 const MAX_LOGIN_ATTEMPTS = 5;
 const profileKey = (u: string) => `nutrilog_profile_${u}`;
 
+// Admin credentials (seeded on first load)
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = 'Admin123!';
+const ADMIN_EMAIL = 'admin@nutrilog.app';
+
 interface StoredUser {
   email: string;
   passwordHash?: string;
   password?: string;
   createdAt: string;
+  isAdmin?: boolean;
 }
 
 type StoredUsers = Record<string, StoredUser>;
@@ -73,7 +80,7 @@ const loadUsers = (): StoredUsers => {
     const parsed = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
     if (!parsed || typeof parsed !== 'object') return {};
     return Object.fromEntries(
-      Object.entries(parsed).filter(([username, value]) => validateUsername(username) === null && isStoredUser(value)),
+      Object.entries(parsed).filter(([, value]) => isStoredUser(value)),
     );
   } catch {
     return {};
@@ -107,7 +114,6 @@ const recordFailedLogin = (username: string) => {
   const failedCount = current && now - current.firstFailedAt < LOGIN_WINDOW_MS
     ? current.failedCount + 1
     : 1;
-
   guards[username] = {
     failedCount,
     firstFailedAt: failedCount === 1 ? now : current.firstFailedAt,
@@ -126,20 +132,14 @@ const loadSession = (): User | null => {
   try {
     const parsed = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
     if (!parsed) return null;
-
     if (parsed.user && parsed.expiresAt) {
-      if (parsed.expiresAt <= Date.now()) {
-        localStorage.removeItem(SESSION_KEY);
-        return null;
-      }
+      if (parsed.expiresAt <= Date.now()) { localStorage.removeItem(SESSION_KEY); return null; }
       return parsed.user;
     }
-
     return parsed.username ? parsed : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 };
+
 const loadProfile = (username: string): UserProfile | null => {
   try { return JSON.parse(localStorage.getItem(profileKey(username)) || 'null'); } catch { return null; }
 };
@@ -151,26 +151,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return s ? loadProfile(s.username) : null;
   });
 
+  // Seed admin account on first load
+  useEffect(() => {
+    const seedAdmin = async () => {
+      const users = loadUsers();
+      if (!users[ADMIN_USERNAME]) {
+        users[ADMIN_USERNAME] = {
+          email: ADMIN_EMAIL,
+          passwordHash: await hashPassword(ADMIN_PASSWORD),
+          createdAt: new Date().toISOString(),
+          isAdmin: true,
+        };
+        saveUsers(users);
+      }
+    };
+    seedAdmin();
+  }, []);
+
   useEffect(() => {
     if (user) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({
-        user,
-        expiresAt: Date.now() + SESSION_MAX_AGE_MS,
-      }));
-    }
-    else localStorage.removeItem(SESSION_KEY);
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ user, expiresAt: Date.now() + SESSION_MAX_AGE_MS }));
+    } else localStorage.removeItem(SESSION_KEY);
   }, [user]);
 
   const register = async (username: string, email: string, password: string) => {
     const u = normalizeUsername(username);
     const e = normalizeEmail(email);
+    if (u === ADMIN_USERNAME) return { success: false, message: 'Username not available.' };
     const usernameError = validateUsername(u);
     const emailError = validateEmail(e);
     const passwordError = validatePassword(password);
     if (usernameError) return { success: false, message: usernameError };
     if (emailError) return { success: false, message: emailError };
     if (passwordError) return { success: false, message: passwordError };
-
     const users = loadUsers();
     if (users[u]) return { success: false, message: 'Username already taken.' };
     if (Object.values(users).some(x => x.email === e)) return { success: false, message: 'Email already registered.' };
@@ -185,33 +198,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     const u = normalizeUsername(username);
-    const usernameError = validateUsername(u);
-    if (usernameError || !password) return { success: false, message: 'Invalid username or password.' };
-
+    if (!u || !password) return { success: false, message: 'Invalid username or password.' };
     const lockMessage = getLoginLockMessage(u);
     if (lockMessage) return { success: false, message: lockMessage };
-
     const users = loadUsers();
     const found = users[u];
     const validPassword = found?.passwordHash
       ? await verifyPassword(password, found.passwordHash)
       : found?.password === password;
-
-    if (!found || !validPassword) {
-      recordFailedLogin(u);
-      return { success: false, message: 'Invalid username or password.' };
-    }
-
+    if (!found || !validPassword) { recordFailedLogin(u); return { success: false, message: 'Invalid username or password.' }; }
     if (!found.passwordHash) {
       users[u] = { email: found.email, createdAt: found.createdAt, passwordHash: await hashPassword(password) };
       saveUsers(users);
     }
-
     clearLoginGuard(u);
     const loggedIn: User = { username: u, email: found.email, createdAt: found.createdAt };
     setUser(loggedIn);
     setProfile(loadProfile(u));
-    return { success: true, message: 'Welcome back!' };
+    return { success: true, message: u === ADMIN_USERNAME ? 'Welcome, Admin!' : 'Welcome back!' };
   };
 
   const saveProfile = (p: UserProfile) => {
@@ -222,10 +226,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => { setUser(null); setProfile(null); };
 
+  const isAdmin = user?.username === ADMIN_USERNAME;
+
   return (
     <AuthContext.Provider value={{
-      user, profile, login, register, saveProfile, logout,
-      isLoggedIn: !!user, hasProfile: !!profile,
+      user, profile, isAdmin, login, register, saveProfile, logout,
+      isLoggedIn: !!user, hasProfile: !!profile || isAdmin,
     }}>
       {children}
     </AuthContext.Provider>
@@ -234,6 +240,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error('useAuth must be inside AuthProvider');
   return ctx;
 }
