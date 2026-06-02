@@ -18,7 +18,7 @@ export default function BottomNav() {
   const { user } = useAuth();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0d180d]/95 backdrop-blur-md border-t border-white/5">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0d180d]/95 backdrop-blur-md border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
       {/* Username bar */}
       <div className="px-4 pt-1.5 pb-0">
         <p className="text-[#3a5a38] text-[10px]">

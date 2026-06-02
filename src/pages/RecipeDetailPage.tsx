@@ -86,7 +86,7 @@ export default function RecipeDetailPage() {
   const scaleBg = (s: number) => s === 0 ? 'bg-red-500/20 text-red-400' : s === 0.5 ? 'bg-amber-500/20 text-amber-400' : 'bg-white/10 text-[#7a9a78]';
 
   return (
-    <div className="min-h-screen bg-[#0f1a0f] pb-36">
+    <div className="min-h-screen bg-[#0f1a0f] pb-[calc(12rem+env(safe-area-inset-bottom))]">
       {/* Hero */}
       <div className="relative h-72">
         <img
@@ -329,11 +329,11 @@ export default function RecipeDetailPage() {
       </div>
 
       {/* Add to cart */}
-      <div className="fixed bottom-16 left-0 right-0 px-4 z-30">
+      <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-0 right-0 px-4 z-30 pointer-events-none">
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleAddToCart}
-          className="w-full py-4 rounded-2xl font-bold text-white text-base shadow-lg flex items-center justify-center gap-2 transition-all"
+          className="w-full max-w-lg mx-auto py-4 rounded-2xl font-bold text-white text-base shadow-lg flex items-center justify-center gap-2 transition-all pointer-events-auto"
           style={{ background: added ? '#22c55e' : accent }}
         >
           {added ? (
