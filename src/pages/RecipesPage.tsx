@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { recipes } from '../data/recipes';
+import { useRecipes } from '../context/RecipeContext';
 import { GOAL_INFO } from '../utils/calculations';
 import { Clock, ChefHat, Flame, ShoppingCart, ArrowLeft, Search, Heart, X } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
@@ -25,6 +25,7 @@ export default function RecipesPage() {
   const { selectedCategory, setSelectedCategory, totalCartItems, wishlist, toggleWishlist } = useApp();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { recipes } = useRecipes();
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 

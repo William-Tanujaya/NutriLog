@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { recipes, veganAddons, nonVeganAddons } from '../data/recipes';
+import { veganAddons, nonVeganAddons } from '../data/recipes';
+import { useRecipes } from '../context/RecipeContext';
 import type { Addon } from '../data/recipes';
 import { useApp } from '../context/AppContext';
 import {
@@ -13,6 +14,7 @@ import BottomNav from '../components/BottomNav';
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { recipes } = useRecipes();
   const recipe = recipes.find(r => r.id === id);
   const { addToCart, totalCartItems, wishlist, toggleWishlist } = useApp();
   const navigate = useNavigate();

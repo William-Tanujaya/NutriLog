@@ -4,15 +4,62 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { calculateDailyGoals, calculateTDEE, getBMIInfo, GOAL_INFO, ACTIVITY_INFO } from '../utils/calculations';
 import type { UserProfile, ActivityLevel, Goal } from '../utils/calculations';
-import { ArrowLeft, Pencil, Check, X, LogOut } from 'lucide-react';
+import { ArrowLeft, Pencil, Check, X, LogOut, ShieldCheck } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 
 export default function ProfilePage() {
-  const { user, profile, saveProfile, logout } = useAuth();
+  const { user, profile, saveProfile, logout, isAdmin } = useAuth();
   const handleLogout = () => { logout(); navigate('/auth'); };
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<UserProfile | null>(profile);
+
+  if ((!profile || !draft) && isAdmin) return (
+    <div className="min-h-screen bg-[#0f1a0f] pb-28">
+      <div className="sticky top-0 z-20 bg-[#0f1a0f]/95 backdrop-blur-sm border-b border-white/5 px-4 py-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+            <ArrowLeft className="w-4 h-4 text-white" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>Admin Account</h1>
+            <p className="text-xs text-[#6a8a68]">@{user?.username}</p>
+          </div>
+          <button onClick={handleLogout} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center">
+            <LogOut className="w-4 h-4 text-red-400" />
+          </button>
+        </div>
+      </div>
+
+      <div className="px-4 pt-6 space-y-4">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-5 border border-[#4CAF50]/30 bg-[#4CAF50]/10">
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#4CAF50]/20 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-6 h-6 text-[#4CAF50]" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-lg">Admin Panel Ready</p>
+              <p className="text-[#7a9a78] text-sm mt-1">
+                This admin account does not need a nutrition profile. Use the admin panel to manage recipes and app data.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        <button
+          onClick={() => navigate('/admin')}
+          className="w-full py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 bg-gradient-to-r from-[#1e4d1b] to-[#2d6b27] border border-[#4CAF50]/30"
+        >
+          <ShieldCheck className="w-5 h-5 text-[#4CAF50]" />
+          <span>Open Admin Panel</span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#4CAF50]/30 text-[#7bc97e]">ADMIN</span>
+        </button>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
 
   if (!profile || !draft) return (
     <div className="min-h-screen bg-[#0f1a0f] flex items-center justify-center">
@@ -211,6 +258,19 @@ export default function ProfilePage() {
         </motion.div>
       </div>
 
+      {/* Admin Panel button */}
+      {isAdmin && (
+        <div className="px-4 mt-4 mb-4">
+          <button
+            onClick={() => navigate('/admin')}
+            className="w-full py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 bg-gradient-to-r from-[#1e4d1b] to-[#2d6b27] border border-[#4CAF50]/30"
+          >
+            <ShieldCheck className="w-5 h-5 text-[#4CAF50]" />
+            <span>Open Admin Panel</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#4CAF50]/30 text-[#7bc97e]">ADMIN</span>
+          </button>
+        </div>
+      )}
       <BottomNav />
     </div>
   );
