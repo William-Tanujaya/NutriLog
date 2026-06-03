@@ -114,5 +114,5 @@ Changes:
 - Improved mobile spacing for the Add to Cart button and bottom navigation
 - Improved stability for recipe list, recipe detail, cart, wishlist, summary, and profile pages
   
-Security Note
+## Security Note
 NutriLog currently uses browser localStorage for demo authentication and app data. Version v1.2.3 improves local security with password hashing, brute-force lockout, session expiration, and security headers. For production use, authentication should be moved to a backend system with secure server-side password hashing, database storage, server-side rate limiting, and HTTP-only secure cookies.
