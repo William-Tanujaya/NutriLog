@@ -53,7 +53,8 @@ Run tests:
 npm test
 ```
 
-Version History
+## Version History
+
 v1.0.0
 Initial NutriLog project setup using React, Vite, TypeScript, Tailwind CSS, and shadcn/ui components.
 
