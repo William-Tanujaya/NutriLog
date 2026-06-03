@@ -82,37 +82,37 @@ v1.2.3
 Security hardening release.
 
 Security improvements:
-Added PBKDF2-SHA256 password hashing
-Added login brute-force lockout
-Added generic login error messages to reduce user enumeration
-Added stronger password validation
-Added session expiration
-Added automatic migration from plaintext local passwords to hashed passwords
-Added Content Security Policy and security headers
-Fixed production dependency audit vulnerabilities
+- Added PBKDF2-SHA256 password hashing
+- Added login brute-force lockout
+- Added generic login error messages to reduce user enumeration
+- Added stronger password validation
+- Added session expiration
+- Added automatic migration from plaintext local passwords to hashed passwords
+- Added Content Security Policy and security headers
+- Fixed production dependency audit vulnerabilities
 
 v1.2.4
 Local recipe image fix.
 
 Changes:
-Added local recipe image assets
-Updated recipe data to use local public image paths
-Improved Netlify deployment compatibility for recipe images
-Updated PWA build config to include recipe image assets
+- Added local recipe image assets
+- Updated recipe data to use local public image paths
+- Improved Netlify deployment compatibility for recipe images
+- Updated PWA build config to include recipe image assets
   
 v1.3.0
 Admin panel and deployment stability update.
 
 Changes:
-Added Admin Panel for stats, user overview, and recipe management
-Added admin-only route protection
-Added recipe data persistence through localStorage
-Added automatic migration for older stored recipe data
-Improved admin profile flow for admin accounts without nutrition profiles
-Fixed Unicode and emoji encoding issues across the app
-Improved recipe image loading for Netlify deployment
-Improved mobile spacing for the Add to Cart button and bottom navigation
-Improved stability for recipe list, recipe detail, cart, wishlist, summary, and profile pages
+- Added Admin Panel for stats, user overview, and recipe management
+- Added admin-only route protection
+- Added recipe data persistence through localStorage
+- Added automatic migration for older stored recipe data
+- Improved admin profile flow for admin accounts without nutrition profiles
+- Fixed Unicode and emoji encoding issues across the app
+- Improved recipe image loading for Netlify deployment
+- Improved mobile spacing for the Add to Cart button and bottom navigation
+- Improved stability for recipe list, recipe detail, cart, wishlist, summary, and profile pages
   
 Security Note
 NutriLog currently uses browser localStorage for demo authentication and app data. Version v1.2.3 improves local security with password hashing, brute-force lockout, session expiration, and security headers. For production use, authentication should be moved to a backend system with secure server-side password hashing, database storage, server-side rate limiting, and HTTP-only secure cookies.
